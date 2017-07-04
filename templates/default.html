@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<html>
+<head>
+  <title>Online Asymptote compiler</title>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+  }
+  .half {
+    display: inline-flex;
+    flex-direction: column;
+    width: 50%;
+    height: 100%;
+  }
+
+  #input {
+  }
+    #appendsize-container {
+      text-align: left;
+      font-family: monospace;
+    }
+    #editor {
+      flex: 1;
+    }
+
+  #output-container:not(.response-loaded-svg) > #output-dl-button {
+    display: none;
+  }
+
+  #output {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+  }
+    #output > svg {
+      flex: 1;
+      padding: 10px;
+      max-width: 100%;
+      max-height: 100%;
+    }
+    #output > code {
+      white-space: pre-wrap;
+      max-height: 100%;
+      overflow: auto;
+    }
+
+</style>
+</head>
+<body>
+  <div class="half" id="input">
+    <div id="appendsize-container" style="text-align: left; font-family: monospace;">
+      <input type="checkbox" id="appendsize" checked
+        style="margin-left: 19px; margin-right: 6px;"/>
+      <span id="appendsize-line">size(7cm);</span>
+    </div>
+    <div id="editor" style="flex: 1;"></div>
+  </div><div class="half" id="output-container">
+    <div id="output">
+      <span>Press Ctrl-Enter to compile image with Asymptote.</span>
+    </div>
+    <button id="output-dl-button" onclick="download()">Загрузить</button>
+  </div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">
+  </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.7/ace.js">
+  </script>
+<script>
+  var editor = ace.edit('editor');
+  editor.setTheme("ace/theme/vibrant_ink");
+  editor.commands.addCommand({
+      bindKey: {win: 'Ctrl-Enter',  mac: 'Command-Enter'},
+      name: 'asycompile', exec: compile,
+  });
+  editor.focus();
+
+  var $appendsize = $('#appendsize');
+  $('#appendsize-container').addClass('ace-vibrant-ink ace_editor');
+  $appendsize.change(function() {
+    editor.setOption("firstLineNumber", $appendsize.is(':checked') ? 2 : 1);
+  });
+  $appendsize.change();
+
+  var $output = $("#output");
+  var response = null;
+  function compile() {
+    var request = new XMLHttpRequest();
+    var formdata = new FormData();
+    var asysource = editor.getValue();
+    if ($appendsize.is(':checked'))
+      asysource = $('#appendsize-line').text() + "\n" + asysource;
+    formdata.append("asysource", asysource);
+    request.addEventListener('load', compile.finish);
+    request.open("POST", "/compile", true);
+    request.send(formdata)
+  }
+  compile.finish = function() {
+    $output.empty();
+    response = this.responseText;
+    var response_type = this.getResponseHeader("Content-Type");
+    console.log(response_type);
+    if (response_type.startsWith("text/plain")) {
+      $output.append($('<code/>').text(response));
+    } else {
+      $output.html(response);
+    }
+    $('#output-container').addClass('response-loaded');
+    if (response_type.startsWith("image/svg+xml")) {
+      $('#output-container').addClass('response-loaded-svg');
+    } else {
+      $('#output-container').removeClass('response-loaded-svg');
+    }
+  }
+  function download() {
+    var blob = new Blob([response], { type: 'image/svg+xml' });
+    var a = document.createElement('a');
+    a.href = window.URL.createObjectURL(blob);
+    a.download = 'image.svg';
+    a.click();
+  }
+</script>
+</body>
+</html>
