@@ -102,7 +102,6 @@
     $output.empty();
     response = this.responseText;
     var response_type = this.getResponseHeader("Content-Type");
-    console.log(response_type);
     if (response_type.startsWith("text/plain")) {
       $output.append($('<code/>').text(response));
     } else {
