@@ -7,36 +7,45 @@ import pathlib
 
 from flask import Flask, request, render_template, Response
 
+
+ASY_ENVIRON = dict(os.environ)
+def fix_path():
+    paths = []
+    def add_path(path):
+        if path is None:
+            return
+        if path not in paths:
+            paths.append(pathlib.Path(path))
+    add_path(os.environ.get('ASYONLINE_PATH_ASYMPTOTE'))
+    add_path(os.environ.get('ASYONLINE_PATH_GHOSTSCRIPT'))
+    add_path(os.environ.get('ASYONLINE_PATH_TEXLIVE'))
+    paths.append(os.environ['PATH'].split(':'))
+    return ':'.join(str(path) for path in paths)
+ASY_ENVIRON['PATH'] = fix_path()
+if 'ASYONLINE_ASYMPTOTE_DIR' in os.environ:
+    ASY_ENVIRON['ASYMPTOTE_DIR'] = os.environ['ASYONLINE_ASYMPTOTE_DIR']
+if 'ASYONLINE_LIBGS' in os.environ:
+    LIBGS = os.environ['ASYONLINE_LIBGS']
+else:
+    LIBGS = ""
+TIMEOUT = 5
+
+
 app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def default():
     return render_template('default.html')
 
-ENVIRON = dict(os.environ)
-APP_DIR = pathlib.Path(__file__).resolve().parent
-TOOLS_DIR = APP_DIR / 'tools'
-if TOOLS_DIR.exists():
-    ENVIRON['PATH'] = (
-        str(TOOLS_DIR/'bin') + ':' +
-        str(TOOLS_DIR/'texlive/bin/x86_64-linux') + ':' +
-        ENVIRON['PATH'] )
-    ENVIRON['ASYMPTOTE_DIR'] = str(TOOLS_DIR/'share/asymptote')
-    LIBGS = str(TOOLS_DIR/"lib/libgs.so")
-else:
-    LIBGS = ""
-
-TIMEOUT = 5
-
 @app.route('/compile', methods=['POST'])
-def compile():
+def compile_svg():
     asysource = request.form['asysource']
     with tempfile.TemporaryDirectory() as tmpdirname:
         with pathlib.Path(tmpdirname, 'main.asy').open('w') as asyfile:
             asyfile.write(asysource)
         asyprocess = subprocess.Popen( ['asy', '-libgs={}'.format(LIBGS),
                 '-outformat', 'svg', 'main.asy'],
-            cwd=tmpdirname, env=ENVIRON,
+            cwd=tmpdirname, env=ASY_ENVIRON,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, )
         try:
             output, erroutput = asyprocess.communicate(timeout=TIMEOUT)
