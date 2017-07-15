@@ -5,6 +5,10 @@
 <head>
   <title>Online Asymptote compiler</title>
 <style>{# {{{ #}
+  a {
+    color: inherit;
+  }
+
   body.twoface {
     margin: 0;
     height: 100vh;
@@ -27,6 +31,27 @@
         flex: 1;
       }
 
+  .footer {
+    background: black;
+    color: #dddddd;
+  }
+      .footer__item {
+        margin: 0 0.3em;
+      }
+      .footer__item--save {
+        float: left;
+      }
+      .footer__item--about {
+        float: right;
+      }
+
+  .source_save:not(.source_save--saved) .source_save__notice {
+    display: none;
+  }
+  .source_save.source_save--saved .source_save__button {
+    display: none;
+  }
+
   .output {
     display: inline-flex;
     flex-direction: column;
@@ -35,9 +60,9 @@
     background: #dddddd;
   }
       .output__part {
-        flex: 0 0 auto;
         width: 100%;
         display: flex;
+        flex: 0 0 auto;
         align-items: center;
         justify-content: center;
         overflow: auto;
@@ -54,7 +79,14 @@
         flex-grow: 1.618;
         flex-basis: calc( 1.618 * ( 1.25em + 20px ) );
         background: #ffffff;
+        animation-duration: 0.3s;
+        animation-name: output__notice;
+        animation-timing-function: linear;
       }
+          @keyframes output__notice {
+              0% { background:   #dddddd  ; }
+            100% { background:   #ffffff  ; }
+          }
       .output__data--error {
         color: red;
       }
@@ -68,12 +100,13 @@
         padding: 5px;
         max-width: calc(100% - 10px);
         max-height: calc(100% - 10px);
-        overflow-y: auto
+        overflow-y: auto;
+        background: #ffffff;
+      }
+      a.output__data {
+        color: #222222;
       }
 
-  a.output__data {
-    color: #222222;
-  }
   a.button {
     cursor: pointer;
     text-decoration: underline;
@@ -85,9 +118,23 @@
 <body class="twoface">
   <div class="twoface__half pane">
     <div id="editor" class="pane__main"></div>
+    <div id="footer" class="footer">
+      <span class="footer__item footer__item--save source_save" id="source_save">
+        <a class="button source_save__button" id="source_save_button">
+          Save source</a>
+        <span class="source_save__notice">
+          URL was updated.
+          <a class="source_save__link" id="source_save_link" download="image.asy">
+            Save source to file</a>
+        </span>
+      </span>
+      <span class="footer__item footer__item--about"
+        ><a href="/about" target="_blank">About</a></span>
+    </div>
   </div><div id="output-container" class="twoface__half pane">
     <div id="output" class="pane__main output">
-      <div class="output__part output__part--error">Press Ctrl-Enter to compile image with Asymptote.</div>
+      <div class="output__part output__part--error"
+        >Press Ctrl-Enter to compile image with Asymptote.</div>
     </div>
   </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">
@@ -99,13 +146,29 @@
   // Editor
   var editor = ace.edit('editor');
 
+  // Creating file links
+  var file_url = { source: null, svg: null };
+  function create_file_url(kind, content, type) {
+    if (file_url[kind] != null)
+      revoke_file_url(kind);
+    var blob = new Blob([content], {type: type});
+    var url = file_url[kind] = URL.createObjectURL(blob);
+    return url;
+  }
+  function revoke_file_url(kind) {
+    if (file_url[kind] != null)
+      URL.revokeObjectURL(file_url[kind]);
+  }
+
   // Compile
   var $output = $("#output");
   var $output_container = $("#output-container");
+  var request = null;
   var response = null;
   function compile() {
     source_save();
     var request = new XMLHttpRequest();
+    current_request = request;
     var formdata = new FormData();
     var asysource = editor.getValue();
     formdata.append("asysource", asysource);
@@ -114,7 +177,11 @@
     request.send(formdata);
   }
   compile.finish = function() {
+    if (this !== current_request) {
+      return;
+    }
     $output.empty();
+    revoke_file_url('svg');
     var response_type = this.getResponseHeader("Content-Type");
     if (!response_type.startsWith("application/json")) {
       $output.html(response);
@@ -147,19 +214,18 @@
         .append($svg_data)
       $output.append($svg_part);
       var $save_button = $('<a/>')
-        .addClass('output__data button')
-        .text("Save")
-        .attr("title", "Get image link");
+        .addClass('output__data button output__indicator')
+        .text("Save image");
       var $save_part = $('<div/>')
         .addClass('output__part output__part--save')
         .append($save_button);
       $save_button.click(function() {
-        var blob = new Blob([response.svg], { type: 'image/svg+xml' });
         var $save_link = $('<a/>')
           .addClass('output__data')
-          .attr('href', window.URL.createObjectURL(blob))
+          .attr('href',
+            create_file_url('svg', response.svg, 'image/svg+xml') )
           .attr('download', 'image.svg')
-          .text("Download image (SVG)");
+          .text("Save image to file (SVG)");
         $save_part.html($save_link);
       });
       $output.append($save_part);
@@ -168,20 +234,25 @@
 
   // Save and load
   function source_save() {
-    console.log("save start");
     var source = editor.getValue();
     var position = editor.selection.getCursor();
     var params = new URLSearchParams();
     params.set("source", source);
     params.set("cursor", position.row + ',' + position.column);
-    var hashstring = params.toString();
-    deflect_source_load();
-    window.location.hash = "#" + hashstring;
-    console.log("save end");
+    var hashstring = '#' + params.toString();
+    if (location.hash != hashstring)
+      source_load.deflect = true;
+    location.hash = hashstring;
   }
   function source_load() {
-    console.log("load start");
-    var params = new URLSearchParams(window.location.hash.substring(1));
+    if (source_load.deflect) {
+      console.log("source_load (deflected)");
+      source_load.deflect = false;
+      return;
+    } else {
+      console.log("source_load");
+    }
+    var params = new URLSearchParams(location.hash.substring(1));
     var source = params.get("source");
     if (source == null)
       source = "size(7cm);\n\n";
@@ -195,17 +266,8 @@
     } else {
       editor.selection.moveCursorFileEnd();
     }
-    console.log("load end");
   }
-  function deflect_source_load() {
-    console.log("deflect activated");
-    var source_load_back = source_load;
-    source_load = function() {
-      console.log("deflect start");
-      source_load = source_load_back;
-      console.log("deflect end");
-    };
-  }
+  source_load.deflect = false;
 
   // Initialize
   editor.setTheme("ace/theme/vibrant_ink");
@@ -216,6 +278,18 @@
   editor.focus();
   window.addEventListener("hashchange", function() { source_load(); });
   source_load();
+  $("#source_save_button").click(function() {
+    source_save();
+    $("#source_save").addClass("source_save--saved");
+    var blob = new Blob([editor.getValue()], { type: 'text/plain' });
+    $("#source_save_link").attr('href', window.URL.createObjectURL(blob));
+    editor.focus();
+    function unsave() {
+      $("#source_save").removeClass("source_save--saved");
+      editor.session.off('change', unsave);
+    }
+    editor.session.on('change', unsave);
+  });
 
 {# }}} #}</script>
 </body>
