@@ -1,126 +1,222 @@
+{# vim: set filetype=jinja foldmethod=marker shiftwidth=2 : -#}
 <!DOCTYPE html>
 <meta charset="UTF-8">
 <html>
 <head>
   <title>Online Asymptote compiler</title>
-<style>
-  body {
+<style>{# {{{ #}
+  body.twoface {
     margin: 0;
     height: 100vh;
-    display: flex;
   }
-  .half {
+  .twoface {
+    display: flex;
+    overflow: hidden;
+  }
+      .twoface__half {
+        width: 50%;
+        height: 100%;
+        overflow: auto;
+      }
+
+  .pane {
     display: inline-flex;
     flex-direction: column;
-    width: 50%;
-    height: 100%;
   }
+      .pane__main {
+        flex: 1;
+      }
 
-  #input {
-  }
-    #appendsize-container {
-      text-align: left;
-      font-family: monospace;
-    }
-    #editor {
-      flex: 1;
-    }
-
-  #output-container:not(.response-loaded-svg) > #output-dl-button {
-    display: none;
-  }
-
-  #output {
-    flex: 1;
+  .output {
     display: inline-flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 10px;
+    background: #dddddd;
   }
-    #output > svg {
-      flex: 1;
-      padding: 10px;
-      max-width: 100%;
-      max-height: 100%;
-    }
-    #output > code {
-      white-space: pre-wrap;
-      max-height: 100%;
-      overflow: auto;
-    }
+      .output__part {
+        flex: 0 0 auto;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: auto;
+      }
+      .output__part--error {
+      }
+      .output__part--text {
+        flex-grow: 1;
+        flex-basis: calc( 1.25em + 10px );
+        align-items: flex-start;
+        justify-content: flex-start;
+      }
+      .output__part--svg {
+        flex-grow: 1.618;
+        flex-basis: calc( 1.618 * ( 1.25em + 20px ) );
+        background: #ffffff;
+      }
+      .output__data--error {
+        color: red;
+      }
+      .output__data--text {
+        padding: 5px;
+      }
+      code.output__data {
+        white-space: pre-wrap;
+      }
+      .output__part--svg > svg {
+        padding: 5px;
+        max-width: calc(100% - 10px);
+        max-height: calc(100% - 10px);
+        overflow-y: auto
+      }
 
-</style>
+  a.output__data {
+    color: #222222;
+  }
+  a.button {
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+  }
+
+{# }}} #}</style>
 </head>
-<body>
-  <div class="half" id="input">
-    <div id="appendsize-container" style="text-align: left; font-family: monospace;">
-      <input type="checkbox" id="appendsize" checked
-        style="margin-left: 19px; margin-right: 6px;"/>
-      <span id="appendsize-line">size(7cm);</span>
+<body class="twoface">
+  <div class="twoface__half pane">
+    <div id="editor" class="pane__main"></div>
+  </div><div id="output-container" class="twoface__half pane">
+    <div id="output" class="pane__main output">
+      <div class="output__part output__part--error">Press Ctrl-Enter to compile image with Asymptote.</div>
     </div>
-    <div id="editor" style="flex: 1;"></div>
-  </div><div class="half" id="output-container">
-    <div id="output">
-      <span>Press Ctrl-Enter to compile image with Asymptote.</span>
-    </div>
-    <button id="output-dl-button" onclick="download()">Загрузить</button>
   </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">
   </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.7/ace.js">
   </script>
-<script>
+
+<script>{# {{{ #}
+  // Editor
   var editor = ace.edit('editor');
+
+  // Compile
+  var $output = $("#output");
+  var $output_container = $("#output-container");
+  var response = null;
+  function compile() {
+    source_save();
+    var request = new XMLHttpRequest();
+    var formdata = new FormData();
+    var asysource = editor.getValue();
+    formdata.append("asysource", asysource);
+    request.addEventListener('load', compile.finish);
+    request.open("POST", "/compile", true);
+    request.send(formdata);
+  }
+  compile.finish = function() {
+    $output.empty();
+    var response_type = this.getResponseHeader("Content-Type");
+    if (!response_type.startsWith("application/json")) {
+      $output.html(response);
+      return;
+    }
+    response = JSON.parse(this.responseText);
+    if (response.error) {
+      var $error_data = $('<span/>')
+        .addClass('output__data output__data--error')
+        .text(response.error);
+      var $error_part = $('<div/>')
+        .addClass('output__part output__part--error')
+        .append($error_data);
+      $output.append($error_part);
+    }
+    if (response.output) {
+      var $text_data = $('<code/>')
+        .addClass('output__data output__data--text')
+        .text(response.output);
+      var $text_part = $('<div/>')
+        .addClass('output__part output__part--text')
+        .attr("title", "stdout")
+        .append($text_data);
+      $output.append($text_part);
+    }
+    if (response.svg) {
+      var $svg_data = $(response.svg);
+      var $svg_part = $('<div/>')
+        .addClass('output__part output__part--svg')
+        .append($svg_data)
+      $output.append($svg_part);
+      var $save_button = $('<a/>')
+        .addClass('output__data button')
+        .text("Save")
+        .attr("title", "Get image link");
+      var $save_part = $('<div/>')
+        .addClass('output__part output__part--save')
+        .append($save_button);
+      $save_button.click(function() {
+        var blob = new Blob([response.svg], { type: 'image/svg+xml' });
+        var $save_link = $('<a/>')
+          .addClass('output__data')
+          .attr('href', window.URL.createObjectURL(blob))
+          .attr('download', 'image.svg')
+          .text("Download image (SVG)");
+        $save_part.html($save_link);
+      });
+      $output.append($save_part);
+    }
+  }
+
+  // Save and load
+  function source_save() {
+    console.log("save start");
+    var source = editor.getValue();
+    var position = editor.selection.getCursor();
+    var params = new URLSearchParams();
+    params.set("source", source);
+    params.set("cursor", position.row + ',' + position.column);
+    var hashstring = params.toString();
+    deflect_source_load();
+    window.location.hash = "#" + hashstring;
+    console.log("save end");
+  }
+  function source_load() {
+    console.log("load start");
+    var params = new URLSearchParams(window.location.hash.substring(1));
+    var source = params.get("source");
+    if (source == null)
+      source = "size(7cm);\n\n";
+    editor.setValue(source);
+    editor.selection.clearSelection();
+    var cursor = params.get("cursor");
+    if (cursor != null && /\d+,\d+/.test(cursor)) {
+      var coords = cursor.split(",");
+      var position = {row: coords[0], column: coords[1]};
+      editor.selection.moveCursorToPosition(position);
+    } else {
+      editor.selection.moveCursorFileEnd();
+    }
+    console.log("load end");
+  }
+  function deflect_source_load() {
+    console.log("deflect activated");
+    var source_load_back = source_load;
+    source_load = function() {
+      console.log("deflect start");
+      source_load = source_load_back;
+      console.log("deflect end");
+    };
+  }
+
+  // Initialize
   editor.setTheme("ace/theme/vibrant_ink");
   editor.commands.addCommand({
       bindKey: {win: 'Ctrl-Enter',  mac: 'Command-Enter'},
       name: 'asycompile', exec: compile,
   });
   editor.focus();
+  window.addEventListener("hashchange", function() { source_load(); });
+  source_load();
 
-  var $appendsize = $('#appendsize');
-  $('#appendsize-container').addClass('ace-vibrant-ink ace_editor');
-  $appendsize.change(function() {
-    editor.setOption("firstLineNumber", $appendsize.is(':checked') ? 2 : 1);
-  });
-  $appendsize.change();
-
-  var $output = $("#output");
-  var response = null;
-  function compile() {
-    var request = new XMLHttpRequest();
-    var formdata = new FormData();
-    var asysource = editor.getValue();
-    if ($appendsize.is(':checked'))
-      asysource = $('#appendsize-line').text() + "\n" + asysource;
-    formdata.append("asysource", asysource);
-    request.addEventListener('load', compile.finish);
-    request.open("POST", "/compile", true);
-    request.send(formdata)
-  }
-  compile.finish = function() {
-    $output.empty();
-    response = this.responseText;
-    var response_type = this.getResponseHeader("Content-Type");
-    if (response_type.startsWith("text/plain")) {
-      $output.append($('<code/>').text(response));
-    } else {
-      $output.html(response);
-    }
-    $('#output-container').addClass('response-loaded');
-    if (response_type.startsWith("image/svg+xml")) {
-      $('#output-container').addClass('response-loaded-svg');
-    } else {
-      $('#output-container').removeClass('response-loaded-svg');
-    }
-  }
-  function download() {
-    var blob = new Blob([response], { type: 'image/svg+xml' });
-    var a = document.createElement('a');
-    a.href = window.URL.createObjectURL(blob);
-    a.download = 'image.svg';
-    a.click();
-  }
-</script>
+{# }}} #}</script>
 </body>
 </html>
