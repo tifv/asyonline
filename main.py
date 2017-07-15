@@ -24,6 +24,10 @@ def compile_svg():
     assert result['svg'] is not None or result['error'] is not None
     return Response(json.dumps(result), mimetype='application/json')
 
+@app.route('/about', methods=['GET'])
+def about():
+    return render_template('about.html')
+
 @app.errorhandler(404)
 def not_found(exception):
     return render_template('404.html'), 404
