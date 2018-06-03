@@ -234,6 +234,9 @@
 
   // Save and load
   function source_save() {
+    if (window.URLSearchParams == null) {
+      return console.log("saving unavailable");
+    }
     var source = editor.getValue();
     var position = editor.selection.getCursor();
     var params = new URLSearchParams();
@@ -245,12 +248,12 @@
     location.hash = hashstring;
   }
   function source_load() {
+    if (window.URLSearchParams == null) {
+      return console.log("loading unavailable");
+    }
     if (source_load.deflect) {
-      console.log("source_load (deflected)");
       source_load.deflect = false;
       return;
-    } else {
-      console.log("source_load");
     }
     var params = new URLSearchParams(location.hash.substring(1));
     var source = params.get("source");
@@ -272,7 +275,7 @@
   // Initialize
   editor.setTheme("ace/theme/vibrant_ink");
   editor.commands.addCommand({
-      bindKey: {win: 'Ctrl-Enter',  mac: 'Command-Enter'},
+      bindKey: {win: 'Ctrl-Enter', mac: 'Command-Enter'},
       name: 'asycompile', exec: compile,
   });
   editor.focus();
