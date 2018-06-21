@@ -1,13 +1,11 @@
-from __future__ import division, unicode_literals
-
 import time
 import io
 import os
 import fcntl
 import selectors
-import tempfile
 import subprocess
-import pathlib
+from tempfile import TemporaryDirectory
+from pathlib import Path
 
 ASY_TIME_LIMIT = 3.0
 ASY_OUTPUT_LIMIT = 2**15 # bytes
@@ -30,7 +28,7 @@ def fix_path():
         if path is None:
             return
         if path not in paths:
-            paths.append(pathlib.Path(path))
+            paths.append(Path(path))
     add_path(os.environ.get('ASYONLINE_PATH_ASYMPTOTE'))
     add_path(os.environ.get('ASYONLINE_PATH_GHOSTSCRIPT'))
     add_path(os.environ.get('ASYONLINE_PATH_TEXLIVE'))
@@ -44,22 +42,27 @@ if 'ASYONLINE_LIBGS' in os.environ:
 else:
     LIBGS = ""
 
-def compile(source, outformat='svg'):
+def compile(mainname, files, outformat='svg'):
     """
     Return {
         'error': <str> or None,
         'output' : <str>,
         outformat : <bytes> or None, }
     """
-    if outformat != 'svg':
+    if outformat not in {'svg', 'pdf'}:
         raise ValueError("Outformat not supported: {}".format(outformat))
-    error = output = svg = None
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        with pathlib.Path(tmpdirname, 'main.asy').open('w') as asyfile:
-            asyfile.write(source)
-        asyprocess = subprocess.Popen( ['asy', '-libgs={}'.format(LIBGS),
-                '-outformat', 'svg', 'main.asy'],
-            cwd=tmpdirname, env=ASY_ENVIRON,
+    error = output = result = None
+    with TemporaryDirectory() as inputdir, TemporaryDirectory() as outputdir:
+        for filename in files:
+            with Path(inputdir, filename).open('w') as fileobj:
+                fileobj.write(files[filename])
+        outpath = Path(outputdir, 'main.{}'.format(outformat))
+        asyprocess = subprocess.Popen( [ 'asy',
+                '-libgs={}'.format(LIBGS),
+                '-outformat', outformat,
+                mainname,
+                '-outname', str(outpath) ],
+            cwd=inputdir, env=ASY_ENVIRON,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             universal_newlines=False )
         time_finish = time.perf_counter() + ASY_TIME_LIMIT
@@ -84,12 +87,12 @@ def compile(source, outformat='svg'):
         if error is None and asyprocess.returncode > 0:
             error = ERROR_FAILURE
         try:
-            with pathlib.Path(tmpdirname, 'main.svg').open('rb') as svgfile:
-                svg = svgfile.read()
+            with outpath.open('rb') as outfile:
+                result = outfile.read()
         except FileNotFoundError:
             if error is None:
                 error = ERROR_NOIMAGE
-        return {'error' : error, 'output' : output, 'svg' : svg}
+        return {'error' : error, 'output' : output, outformat : result}
 
 def _read_until(stream, time_finish, byte_limit):
     # time_limit is as from time.perf_counter()

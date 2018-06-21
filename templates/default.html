@@ -5,118 +5,151 @@
 <head>
   <title>Online Asymptote compiler</title>
 <style>{# {{{ #}
-  a {
-    color: inherit;
-  }
+    a {
+      color: inherit;
+    }
 
-  body.twoface {
-    margin: 0;
-    height: 100vh;
-  }
-  .twoface {
-    display: flex;
-    overflow: hidden;
-  }
-      .twoface__half {
-        width: 50%;
-        height: 100%;
-        overflow: auto;
-      }
+    body {
+      margin: 0;
+    }
+    body > .dsplit--vertical {
+      height: 100vh;
+    }
+    .dsplit {
+      display: flex;
+      overflow: hidden;
+    }
+    .dsplit--vertical {
+    }
+    .dsplit--horizontal {
+    }
+        .dsplit__part {
+          flex-shrink: 0.0;
+          flex-grow: 1.0;
+        }
+        .dsplit--vertical > .dsplit__part {
+          flex-basis: 100px;
+          height: 100%;
+        }
+        .dsplit--horizontal > .dsplit__part {
+          flex-basis: 20px;
+          width: 100%;
+        }
+        .dsplit__separator {
+          flex-shrink: 0.0;
+          flex-grow: 0.0;
+          flex-basis: 8px;
+          width: 100%;
+          background-color: hsl(120, 0%, 30%);
+        }
+        .dsplit__separator:hover {
+          background-color: hsl(120, 0%, 70%);
+        }
+        .dsplit__separator.active {
+          background-color: hsl(120, 0%, 70%);
+        }
+    #dsplit__overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+    }
 
-  .pane {
-    display: inline-flex;
-    flex-direction: column;
-  }
-      .pane__main {
-        flex: 1;
-      }
+    .pane {
+      display: inline-flex;
+      flex-direction: column;
+    }
+        .pane__main {
+          flex: 1;
+        }
 
-  .footer {
-    background: black;
-    color: #dddddd;
-  }
-      .footer__item {
-        margin: 0 0.3em;
-      }
-      .footer__item--save {
-        float: left;
-      }
-      .footer__item--about {
-        float: right;
-      }
+    .footer {
+      background: black;
+      color: #dddddd;
+    }
+        .footer__item {
+          margin: 0 0.3em;
+        }
+        .footer__item--save {
+          float: left;
+        }
+        .footer__item--about {
+          float: right;
+        }
 
-  .source_save:not(.source_save--saved) .source_save__notice {
-    display: none;
-  }
-  .source_save.source_save--saved .source_save__button {
-    display: none;
-  }
+    .source_save:not(.source_save--saved) .source_save__notice {
+      display: none;
+    }
+    .source_save.source_save--saved .source_save__button {
+      display: none;
+    }
 
-  .output {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: #dddddd;
-  }
-      .output__part {
-        width: 100%;
-        display: flex;
-        flex: 0 0 auto;
-        align-items: center;
-        justify-content: center;
-        overflow: auto;
-      }
-      .output__part--error {
-      }
-      .output__part--text {
-        flex-grow: 1;
-        flex-basis: calc( 1.25em + 10px );
-        align-items: flex-start;
-        justify-content: flex-start;
-      }
-      .output__part--svg {
-        flex-grow: 1.618;
-        flex-basis: calc( 1.618 * ( 1.25em + 20px ) );
-        background: #ffffff;
-        animation-duration: 0.3s;
-        animation-name: output__notice;
-        animation-timing-function: linear;
-      }
-          @keyframes output__notice {
-              0% { background:   #dddddd  ; }
-            100% { background:   #ffffff  ; }
-          }
-      .output__data--error {
-        color: red;
-      }
-      .output__data--text {
-        padding: 5px;
-      }
-      code.output__data {
-        white-space: pre-wrap;
-      }
-      .output__part--svg > svg {
-        padding: 5px;
-        max-width: calc(100% - 10px);
-        max-height: calc(100% - 10px);
-        overflow-y: auto;
-        background: #ffffff;
-      }
-      a.output__data {
-        color: #222222;
-      }
+    .output {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #dddddd;
+    }
+        .output__part {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: auto;
+        }
+        .output__part--error {
+          flex-grow: 0;
+        }
+        .output__part--text {
+          align-items: flex-start;
+          justify-content: flex-start;
+        }
+        .output__part--svg {
+          background: #ffffff;
+          animation-duration: 0.3s;
+          animation-name: output__notice;
+          animation-timing-function: linear;
+        }
+            @keyframes output__notice {
+                0% { background:   #bbddff  ; }
+               50% { background:   #ddffee  ; }
+              100% { background:   #ffffff  ; }
+            }
+        .output__data--error {
+          color: red;
+        }
+        .output__data--text {
+          padding: 5px;
+        }
+        code.output__data {
+          white-space: pre-wrap;
+        }
+        .output__part--svg > svg {
+          padding: 5px;
+          overflow-y: auto;
+          /*background: #ffffff;*/
+          box-sizing: border-box;
+        }
+        a.output__data {
+          color: #222222;
+        }
+        .output__part--scale > .button:not(:first-child) {
+          margin-left: 20px;
+        }
 
-  a.button {
-    cursor: pointer;
-    text-decoration: underline;
-    text-decoration-style: dotted;
-  }
+    a.button {
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+    }
 
 {# }}} #}</style>
 </head>
-<body class="twoface">
-  <div class="twoface__half pane">
+<body><div class="dsplit dsplit--vertical">
+  <div class="dsplit__part pane">
     <div id="editor" class="pane__main"></div>
     <div id="footer" class="footer">
       <span class="footer__item footer__item--save source_save" id="source_save">
@@ -131,18 +164,19 @@
       <span class="footer__item footer__item--about"
         ><a href="/about" target="_blank">About</a></span>
     </div>
-  </div><div id="output-container" class="twoface__half pane">
-    <div id="output" class="pane__main output">
-      <div class="output__part output__part--error"
-        >Press Ctrl-Enter to compile image with Asymptote.</div>
+  </div><div class="dsplit__separator"></div><div id="output-container" class="dsplit__part pane">
+    <div id="output" class="pane__main output dsplit dsplit--horizontal">
     </div>
   </div>
+</div>
+<div id="dsplit__overlay"></div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">
   </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.7/ace.js">
   </script>
 
 <script>{# {{{ #}
+  "use strict";
   // Editor
   var editor = ace.edit('editor');
 
@@ -151,8 +185,8 @@
   function create_file_url(kind, content, type) {
     if (file_url[kind] != null)
       revoke_file_url(kind);
-    var blob = new Blob([content], {type: type});
-    var url = file_url[kind] = URL.createObjectURL(blob);
+    let blob = new Blob([content], {type: type});
+    let url = file_url[kind] = URL.createObjectURL(blob);
     return url;
   }
   function revoke_file_url(kind) {
@@ -160,67 +194,211 @@
       URL.revokeObjectURL(file_url[kind]);
   }
 
-  // Compile
-  var $output = $("#output");
-  var $output_container = $("#output-container");
-  var request = null;
-  var response = null;
-  function compile() {
-    source_save();
-    var request = new XMLHttpRequest();
-    current_request = request;
-    var formdata = new FormData();
-    var asysource = editor.getValue();
-    formdata.append("asysource", asysource);
-    request.addEventListener('load', compile.finish);
-    request.open("POST", "/compile", true);
-    request.send(formdata);
-  }
-  compile.finish = function() {
-    if (this !== current_request) {
-      return;
+  const separators = function() { {# {{{ namespace #}
+    var active_separator = null;
+    function mousedown() {
+      if (window.getSelection) {
+        window.getSelection().removeAllRanges();
+      }
+      active_separator = this;
+      $(active_separator).addClass("active");
+      $("#dsplit__overlay").css("z-index", +1);
+    };
+    function register(element) {
+      $(element).mousedown(mousedown);
     }
-    $output.empty();
-    revoke_file_url('svg');
-    var response_type = this.getResponseHeader("Content-Type");
-    if (!response_type.startsWith("application/json")) {
-      $output.html(response);
-      return;
+    function mousequit() {
+      if (active_separator == null)
+        return;
+      $(active_separator).removeClass("active");
+      $("#dsplit__overlay").css("z-index", -1);
+      active_separator = null;
     }
-    response = JSON.parse(this.responseText);
-    if (response.error) {
-      var $error_data = $('<span/>')
-        .addClass('output__data output__data--error')
-        .text(response.error);
-      var $error_part = $('<div/>')
-        .addClass('output__part output__part--error')
-        .append($error_data);
-      $output.append($error_part);
+    $("#dsplit__overlay").mouseup(mousequit);
+    $("#dsplit__overlay").mouseleave(mousequit);
+    $("#dsplit__overlay").mousemove(function(e) { {# {{{ #}
+      if (active_separator == null)
+        return;
+      var $separator = $(active_separator);
+      var $container = $separator.parent();
+      var is_vertical = $container.hasClass("dsplit--vertical");
+      var is_horizontal = $container.hasClass("dsplit--horizontal");
+      if (!is_vertical && !is_horizontal)
+        throw "impossible";
+      if (is_vertical && is_horizontal)
+        throw "also impossible";
+      /*if (!is_vertical)
+        throw "not yet"; */
+      var offset = $container.offset();
+      var separator_position =
+        is_vertical ? (e.pageX - offset.left) : (e.pageY - offset.top);
+      var flex = {prev: {basis: 0, grow: 0}, next: {basis: 0, grow: 0}};
+      var $prev = $separator.prevAll();
+      var $next = $separator.nextAll();
+      function sum_flex_stat(flex_stat) {
+        var $this = $(this);
+        var flex_basis = $this.css("flex-basis");
+        var flex_grow = $this.css("flex-grow")
+        if (flex_basis == "auto") {
+          if (flex_grow != "0") {
+            throw "we have a problem";
+          }
+          flex_basis = is_vertical ? $this.width() : $this.height();
+        }
+        flex_stat.basis += parseInt(flex_basis);
+        flex_stat.grow += parseInt(flex_grow);
+      };
+      $prev.each(function() {
+        sum_flex_stat.call(this, flex.prev);
+      });
+      $next.each(function() {
+        sum_flex_stat.call(this, flex.next);
+      });
+      var total =
+        is_vertical ? $container.width() : $container.height();
+      var excess = total - flex.prev.basis - flex.next.basis;
+      if (excess <= 0)
+        return;
+      var separator_size =
+        is_vertical ? $separator.width() : $separator.height();
+      flex.prev.excess = separator_position - flex.prev.basis
+        - separator_size / 2;
+      if (flex.prev.excess <= 0)
+        flex.prev.excess = 0;
+      flex.next.excess = excess - flex.prev.excess - separator_size;
+      if (flex.next.excess <= 0) {
+        flex.next.excess = 0;
+        flex.prev.excess = excess;
+      }
+      var $prev$parts = $prev.filter('.dsplit__part');
+      var $next$parts = $next.filter('.dsplit__part');
+      flex.prev.count = $prev$parts.length;
+      flex.next.count = $next$parts.length;
+      $prev$parts.each(function() {
+        var $this = $(this);
+        if (flex.prev.grow <= 0) {
+          $this.css("flex-grow", flex.prev.excess / flex.prev.count);
+        } else {
+          $this.css( "flex-grow",
+            $this.css("flex-grow") * flex.prev.excess / flex.prev.grow );
+        }
+      });
+      $next$parts.each(function() {
+        var $this = $(this);
+        if (flex.next.grow <= 0) {
+          $this.css("flex-grow", flex.next.excess / flex.next.count);
+        } else {
+          $this.css( "flex-grow",
+            $this.css("flex-grow") * flex.next.excess / flex.next.grow );
+        }
+      });
+    }); {# }}} #}
+    return { register: register };
+  }(); {# end namespace }}} #}
+  separators.register($(".dsplit__separator"))
+
+  const compile = function() { {# {{{ namespace #}
+    var $output = $("#output");
+    var current_request = null;
+    var response = null;
+    var flex_grow = {text: 0.618, svg: 1.000};
+    var svg_size = {height: null, width: null};
+
+    function output_empty() {
+      let $text = $output.children('.output__part--text');
+      let $svg = $output.children('.output__part--svg');
+      if ($text.length > 0 && $svg.length > 0) {
+        flex_grow.text = $text.css('flex-grow');
+        flex_grow.svg = $svg.css('flex-grow');
+      }
+      $output.empty();
     }
-    if (response.output) {
-      var $text_data = $('<code/>')
-        .addClass('output__data output__data--text')
-        .text(response.output);
-      var $text_part = $('<div/>')
-        .addClass('output__part output__part--text')
-        .attr("title", "stdout")
-        .append($text_data);
-      $output.append($text_part);
+
+    function compile() {
+      source_save();
+      if (current_request != null) {
+        current_request.abort();
+        return check_status();
+      }
+      let request = new XMLHttpRequest();
+      current_request = request;
+      let formdata = new FormData();
+      formdata.append("info", JSON.stringify({
+        "files" : ["main.asy"], "main" : "main.asy",
+        "outformat" : "svg",
+      }));
+      let asysource = editor.getValue();
+      formdata.append("main.asy", asysource);
+      request.addEventListener('load', compile_finish);
+      request.addEventListener('error', request_fail);
+      request.open("POST", "/compile", /* async = */ true);
+      request.send(formdata);
     }
-    if (response.svg) {
-      var $svg_data = $(response.svg);
-      var $svg_part = $('<div/>')
-        .addClass('output__part output__part--svg')
-        .append($svg_data)
-      $output.append($svg_part);
-      var $save_button = $('<a/>')
-        .addClass('output__data button output__indicator')
+
+    function compile_finish() {
+      if (this !== current_request) {
+        return;
+      }
+      current_request = null;
+      output_empty();
+      revoke_file_url('svg');
+      let response_type = this.getResponseHeader("Content-Type");
+      if (!response_type.startsWith("application/json")) {
+        $output.html(this.responseText);
+        return;
+      }
+      response = JSON.parse(this.responseText);
+      if (response.error) {
+        var $error_data = $('<span/>')
+          .addClass('output__data output__data--error')
+          .text(response.error);
+        var $error_part = $('<div/>')
+          .addClass('output__part output__part--error')
+          .append($error_data);
+        $output.append($error_part);
+      }
+      if (response.output) {
+        let $text_data = $('<code/>')
+          .addClass('output__data output__data--text')
+          .text(response.output);
+        let $text_part = $('<div/>')
+          .addClass('output__part output__part--text dsplit__part')
+          .attr("title", "stdout")
+          .css('flex-grow', flex_grow.text)
+          .append($text_data);
+        $output.append($text_part);
+      }
+      if (response.output && response.svg) {
+        let $separator = $('<div/>').addClass('dsplit__separator');
+        $output.append($separator);
+        separators.register($separator);
+      }
+      if (response.svg) {
+        let $svg_data = $(response.svg);
+        let $svg = $svg_data.filter('svg');
+        svg_size.width = parseFloat($svg.attr('width'));
+        svg_size.height = parseFloat($svg.attr('height'));
+        $svg.removeAttr('width')
+        $svg.removeAttr('height')
+        let $svg_part = $('<div>')
+          .addClass('output__part output__part--svg dsplit__part')
+          .css('flex-grow', flex_grow.svg)
+          .append($svg);
+        $output.append($svg_part);
+        scale($svg);
+        $output.append(get_save_part());
+      }
+    }
+
+    function get_save_part() {
+      let $save_button = $('<a/>')
+        .addClass('output__data button')
         .text("Save image");
-      var $save_part = $('<div/>')
+      let $save_part = $('<div/>')
         .addClass('output__part output__part--save')
         .append($save_button);
       $save_button.click(function() {
-        var $save_link = $('<a/>')
+        let $save_link = $('<a/>')
           .addClass('output__data')
           .attr('href',
             create_file_url('svg', response.svg, 'image/svg+xml') )
@@ -228,9 +406,110 @@
           .text("Save image to file (SVG)");
         $save_part.html($save_link);
       });
-      $output.append($save_part);
+      return $save_part;
     }
-  }
+
+    function get_scale_part($svg) {
+      let $scale_part = $('<div/>')
+        .addClass('output__part output__part--scale')
+        .append(
+          $('<a/>')
+            .addClass('output__data button')
+            .text("Fit")
+            .click(function() { scale_fit($svg); })
+        )
+        .append(
+          $('<a/>')
+            .addClass('output__data button')
+            .text("50%")
+            .click(function() { scale_50($svg); })
+        )
+        .append(
+          $('<a/>')
+            .addClass('output__data button')
+            .text("100%")
+            .click(function() { scale_100($svg); })
+        )
+        .append(
+          $('<a/>')
+            .addClass('output__data button')
+            .text("200%")
+            .click(function() { scale_200($svg); })
+        )
+      return $scale_part;
+    }
+
+    function scale_fit($svg) {
+      $svg
+        .css('width', "100%")
+        .css('height', "100%");
+      scale = scale_fit;
+    }
+    function scale_50($svg) {
+      $svg
+        .css('width', 0.5 * svg_size.width)
+        .css('height', 0.5 * svg_size.height);
+      scale = scale_50;
+    }
+    function scale_100($svg) {
+      $svg
+        .css('width', 1.0 * svg_size.width)
+        .css('height', 1.0 * svg_size.height);
+      scale = scale_100;
+    }
+    function scale_200($svg) {
+      $svg
+        .css('width', 2.0 * svg_size.width)
+        .css('height', 2.0 * svg_size.height);
+      scale = scale_200;
+    }
+    var scale = scale_fit;
+
+    function check_status() {
+      output_empty()
+      $output.append(
+        $('<div/>')
+          .addClass('output__part output__part--error')
+          .text( "You cancelled the request. " +
+            "Awaiting server status update…" )
+      )
+      let request = new XMLHttpRequest();
+      current_request = request;
+      request.addEventListener('load', check_status_finish);
+      request.addEventListener('error', request_fail);
+      request.open("GET", "/status", /* async = */ true);
+      request.send();
+    }
+
+    function check_status_finish() {
+      if (this !== current_request) {
+        return;
+      }
+      current_request = null;
+      output_empty();
+      $output.append(
+        $('<div/>')
+          .addClass('output__part output__part--error')
+          .text( "Server is reachable. " )
+      )
+      output_help($output);
+    }
+
+    function request_fail() {
+      if (this !== current_request) {
+        return;
+      }
+      current_request = null;
+      output_empty();
+      $output.append(
+        $('<div/>')
+          .addClass('output__part output__part--error')
+          .text( "Server is unreachable. Try again." )
+      )
+    }
+
+  return compile;
+  }(); {# end namespace }}} #}
 
   // Save and load
   function source_save() {
@@ -284,8 +563,8 @@
   $("#source_save_button").click(function() {
     source_save();
     $("#source_save").addClass("source_save--saved");
-    var blob = new Blob([editor.getValue()], { type: 'text/plain' });
-    $("#source_save_link").attr('href', window.URL.createObjectURL(blob));
+    let url = create_file_url("source", editor.getValue(), 'text/plain');
+    $("#source_save_link").attr('href', url);
     editor.focus();
     function unsave() {
       $("#source_save").removeClass("source_save--saved");
@@ -293,6 +572,17 @@
     }
     editor.session.on('change', unsave);
   });
+
+  function output_help($output) {
+    if ($output == null)
+      $output = $("#output");
+    $output.append(
+      $('<div/>')
+        .addClass('output__part output__part--error')
+        .text("Press Ctrl-Enter to compile image with Asymptote.")
+    );
+  }
+  $(function() { output_help(); });
 
 {# }}} #}</script>
 </body>
