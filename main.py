@@ -6,10 +6,11 @@ import asy
 
 
 app = Flask(__name__)
+DEVELOPER_MODE = False
 
 @app.route('/', methods=['GET'])
 def default():
-    return render_template('default.html')
+    return render_template('default.html', use_cdn=(not DEVELOPER_MODE))
 
 @app.route('/compile', methods=['POST'])
 def compile():
