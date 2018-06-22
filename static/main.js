@@ -34,27 +34,28 @@ const separators = function() { /* namespace {{{ */
     }
 
     function activate() {
-      if (window.getSelection) {
         window.getSelection().removeAllRanges();
-      }
-      if (active != null)
-          $(active).removeClass("active");
-      active = this;
-      $(active).addClass("active");
-      $overlay.css("z-index", +1);
+        if (active != null)
+            $(active).removeClass("active");
+        active = this;
+        $(active).addClass("active");
+        $overlay.css("z-index", +1);
+        console.log("hop");
     }
 
     function deactivate() {
-      if (active == null)
-        return;
-      $(active).removeClass("active");
-      $("#splitter__overlay").css("z-index", -1);
-      active = null;
+        if (active == null)
+            return;
+        $(active).removeClass("active");
+        $("#splitter__overlay").css("z-index", -1);
+        active = null;
+        console.log("op");
     }
 
     function move_it(event) {
         if (active == null)
             return;
+        window.getSelection().removeAllRanges();
         var $separator = $(active);
         var $container = $separator.parent();
         var is_vertical = $container.hasClass("splitter--vertical");
@@ -121,9 +122,10 @@ const separators = function() { /* namespace {{{ */
         });
     }
 
+    $(window).mouseup(deactivate);
     $overlay.mouseup(deactivate);
     $overlay.mouseleave(deactivate);
-    $overlay.mousemove(move_it);
+    $(window).mousemove(move_it);
 
     return { enable: enable };
 }(); /* }}} */
@@ -173,7 +175,8 @@ const sources = function() { /* namespace {{{ */
 
     function open_projects_db(success_callback) {
         if (!window.indexedDB) {
-            return open_projects_db_fail();
+            open_projects_db_fail();
+            return;
         }
         let request = indexedDB.open("projects", 1);
         request.onupgradeneeded = function(event) {
@@ -183,9 +186,12 @@ const sources = function() { /* namespace {{{ */
         }
         request.onsuccess = function(event) {
             projects_db = event.target.result;
-            success_callback();
+            autoload();
         }
-        request.onerror = open_projects_db_fail;
+        request.onerror = function(event) {
+            open_projects_db_fail();
+            autoload_default();
+        }
     }
     function open_projects_db_fail() {
         console.log("Saving and loading is disabled. " +
