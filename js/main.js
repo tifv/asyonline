@@ -135,6 +135,11 @@ separators.enable($(".splitter__separator"))
  * sources.autosave()
  */
 const sources = function() { /* namespace {{{ */
+    $("#editor_pane").append(
+      $("<div/>")
+        .attr('id', "editor")
+        .addClass("splitter__part")
+    );
     var editor = ace.edit('editor');
     editor.setTheme("ace/theme/vibrant_ink");
     editor.commands.addCommand({
@@ -291,7 +296,7 @@ const output = function() { /* namespace {{{ */
         $output.append(
           $('<div/>')
             .addClass('output__part output__part--error')
-            .text("Press Ctrl-Enter to compile image with Asymptote.")
+            .text("Press Ctrl-Enter to compile your Asymptote code.")
         );
     }
 
@@ -367,22 +372,23 @@ const output = function() { /* namespace {{{ */
     }
 
     function get_save_part(svg_data) {
-      let $save_button = $('<a/>')
-        .addClass('output__data button')
-        .text("Save image");
-      let $save_part = $('<div/>')
-        .addClass('output__part output__part--save')
-        .append($save_button);
-      $save_button.click(function() {
-        let $save_link = $('<a/>')
-          .addClass('output__data')
-          .attr('href',
-            create_file_url('svg', svg_data, 'image/svg+xml') )
-          .attr('download', 'image.svg')
-          .text("Save image to file (SVG)");
-        $save_part.html($save_link);
-      });
-      return $save_part;
+        let $save_button = $('<a/>')
+            .addClass('output__data button')
+            .text("Save image");
+        let $save_part = $('<div/>')
+            .addClass('output__part output__part--save')
+            .append($save_button);
+        $save_button.click(function() {
+            let url = file_urls.get('svg',
+                new Blob([svg_data], {type: 'image/svg+xml'}) );
+            let $save_link = $('<a/>')
+                .addClass('output__data')
+                .attr('href', url)
+                .attr('download', 'image.svg')
+                .text("Save image to file (SVG)");
+            $save_part.html($save_link);
+        });
+        return $save_part;
     }
 
     function abort_request() {

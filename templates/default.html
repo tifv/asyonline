@@ -19,7 +19,11 @@
       display: flex;
       overflow: hidden;
     }
+    .splitter:not(.splitter--vertical) {
+      flex-direction: column;
+    }
     .splitter--vertical {
+      flex-direction: row;
     }
         .splitter__part {
           flex-shrink: 0.0;
@@ -61,14 +65,6 @@
       z-index: -1;
     }
 
-    .pane {
-      display: inline-flex;
-      flex-direction: column;
-    }
-        .pane__main {
-          flex: 1;
-        }
-
     .footer {
       background: black;
       color: #dddddd;
@@ -93,8 +89,6 @@
 #}
 
     .output {
-      display: inline-flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       background: #dddddd;
@@ -155,8 +149,8 @@
 </style> {#- }}} #}
 </head>
 <body><div class="splitter splitter--vertical">
-  <div class="splitter__part pane">
-    <div id="editor" class="pane__main"></div>
+  <div class="splitter__part splitter">
+    <div id="editor_pane" class="splitter__part splitter"></div>
     <div id="footer" class="footer">
     {#-
       <span class="footer__item footer__item--save source_save" id="source_save">
@@ -173,9 +167,7 @@
         ><a href="/about" target="_blank">About</a></span>
     </div>
   </div><div class="splitter__separator">
-  </div><div id="output-container" class="splitter__part pane">
-    <div id="output" class="pane__main output splitter">
-    </div>
+  </div><div id="output" class="splitter__part output splitter">
   </div>
 </div>
 <div id="splitter__overlay"></div>
@@ -191,8 +183,14 @@
   src="/static/libs/ace/1.2.7/ace.js"
   {%- endif -%}
 ></script>
+<script {% if use_cdn -%}
+  src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.7/theme-vibrant_ink.js"
+  {%- else -%}
+  src="/static/libs/ace/1.2.7/theme-vibrant_ink.js"
+  {%- endif -%}
+></script>
 
-<script src="/static/main.js"></script>
+<script>{{ include_raw("js-include/main.js") }}</script>
 
 </body>
 </html>
