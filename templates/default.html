@@ -15,6 +15,7 @@
     body > .splitter.splitter--vertical {
       height: 100vh;
     }
+
     .splitter {
       display: flex;
       overflow: hidden;
@@ -42,7 +43,7 @@
           flex-grow: 0.0;
           flex-basis: 8px;
           width: 100%;
-          background-color: hsl(120, 0%, 30%);
+          background-color: hsl(120, 0%, 70%);
         }
         .splitter:not(.splitter--vertical) > .splitter__separator {
           cursor: ns-resize;
@@ -51,10 +52,15 @@
           cursor: ew-resize;
         }
         .splitter__separator:hover {
-          background-color: hsl(120, 0%, 70%);
+          background-color: hsl(120, 0%, 30%);
         }
         .splitter__separator.active {
-          background-color: hsl(120, 0%, 70%);
+          background-color: hsl(120, 0%, 30%);
+        }
+        .splitter__separator:last-child,
+        .splitter__separator + .splitter__separator
+        {
+          display: none;
         }
     #splitter__overlay {
       position: absolute;
@@ -70,23 +76,102 @@
       color: #dddddd;
     }
         .footer__item {
-          margin: 0 0.3em;
-        }
-        .footer__item--save {
-          float: left;
+          padding: 0 0.3em;
         }
         .footer__item--about {
           float: right;
         }
 
-{#-
-    .source_save:not(.source_save--saved) #source_save__notice {
-      display: none;
+    .menu_button:hover {
+      background: #222222;
     }
-    .source_save.source_save--saved #source_save__button {
-      display: none;
+    .menu_button.active {
+      background: #ffffff;
+      color: black;
     }
-#}
+    .menu_button:hover.active {
+      background: #dddddd;
+    }
+
+    .file {
+    }
+        .file__editor {
+          height: calc( 100% - 20px );
+        }
+        .file.file--single > .file_header {
+          display: none;
+        }
+        .file.file--single > .file__editor {
+          height: calc( 100% );
+        }
+
+    .file_header {
+      height: 20px;
+      color: white;
+    }
+        .file_header.file_header--runnable {
+          background: linear-gradient( #006600, #004400 25%, #004400 75%, #002200 );
+        }
+        .file_header:not(.file_header--runnable) {
+          background: linear-gradient( #000066, #000044 25%, #000044 75%, #000022 );
+        }
+        .file_header__caption {
+          padding: 0 0.3em;
+          color: white;
+        }
+        .file_header.file_header--hidden > .file_header__caption {
+          font-style: italic;
+        }
+        .file_header__buttons {
+          float: right;
+          height: 20px;
+        }
+        .file_header__runnable_button {
+          display: inline;
+          padding: 0 0.3em;
+        }
+        .file_header.file_header--runnable > .file_header__buttons >
+          .file_header__runnable_button
+        {
+          color: #000044;
+        }
+        .file_header:not(.file_header--runnable) > .file_header__buttons >
+          .file_header__runnable_button
+        {
+          color: #004400;
+        }
+        .file_header__runnable_button::before {
+          content: "⬤";
+        }
+        .file_header__delete_button {
+          display: inline;
+          padding: 0 0.3em;
+          color: red;
+        }
+        .file_header__delete_button.file_header__delete_button--sure {
+          background: red;
+          color: black;
+        }
+        .file_header__delete_button::after {
+          content: url("/static/symbols/trash-bin.svg");
+        }
+        .file_header__delete_button.file_header__delete_button--sure::after {
+          content: "Delete?";
+        }
+
+    .file_menu {
+      overflow-y: auto;
+      background: black;
+    }
+        .file_menu__adder {
+          box-sizing: border-box;
+          width: 100%;
+          height: 20px;
+          border: 0;
+          padding: 0 0.3em;
+          background: #002222;
+          color: white;
+        }
 
     .output {
       align-items: center;
@@ -118,6 +203,9 @@
                50% { background:   #ddffee  ; }
               100% { background:   #ffffff  ; }
             }
+        .output__data + .output__data {
+          margin-left: 12px;
+        }
         .output__data--error {
           color: red;
         }
@@ -133,9 +221,6 @@
           /*background: #ffffff;*/
           box-sizing: border-box;
         }
-        a.output__data {
-          color: #222222;
-        }
         .output__part--scale > .button:not(:first-child) {
           margin-left: 20px;
         }
@@ -150,25 +235,21 @@
 </head>
 <body><div class="splitter splitter--vertical">
   <div class="splitter__part splitter">
-    <div id="editor_pane" class="splitter__part splitter"></div>
-    <div id="footer" class="footer">
-    {#-
-      <span class="footer__item footer__item--save source_save" id="source_save">
-        <a class="button" id="source_save__button">
-          Save source</a>
-        <span id="source_save__notice">
-          URL was updated.
-          <a id="source_save__link" download="image.asy">
-            Save source to file</a>
-        </span>
-      </span>
-    #}
-      <span class="footer__item footer__item--about"
-        ><a href="/about" target="_blank">About</a></span>
+    <div id="source_pane" class="splitter__part splitter">
+      <div id="file_pane" class="splitter__part splitter"></div>
+      <div class="splitter__separator"></div>
     </div>
-  </div><div class="splitter__separator">
-  </div><div id="output" class="splitter__part output splitter">
+    <div id="footer" class="footer"
+     ><span id="file_menu_button" data-menu_type="file"
+          class="footer__item footer__item--menu menu_button"
+          onclick="sources.toggle_file_menu();"
+       >Files</span
+     ><span class="footer__item footer__item--about"
+       ><a href="/about" target="_blank">About</a></span
+     ></div>
   </div>
+  <div id="pane_separator" class="splitter__separator"></div>
+  <div id="output" class="splitter__part output splitter"></div>
 </div>
 <div id="splitter__overlay"></div>
 <script {% if use_cdn -%}
@@ -190,7 +271,9 @@
   {%- endif -%}
 ></script>
 
-<script>{{ include_raw("js-include/main.js") }}</script>
+<script>
+{{ include_raw("js-include/main.js") }}
+</script>
 
 </body>
 </html>

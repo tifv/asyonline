@@ -9,10 +9,12 @@ import asy
 app = Flask(__name__)
 DEVELOPER_MODE = False
 
+
 app.jinja_env.globals['include_raw'] = (
     lambda filename :
         Markup(app.jinja_loader.get_source(app.jinja_env, filename)[0])
 )
+
 
 @app.route('/', methods=['GET'])
 def default():
@@ -20,31 +22,42 @@ def default():
         use_cdn=(not DEVELOPER_MODE),
     )
 
-@app.route('/compile', methods=['POST'])
-def compile():
-    info = json.loads(request.form['info'])
-    if 'outformat' not in info or info['outformat'] not in {'svg', 'pdf'}:
-        raise BadCompileRequest
-    if 'files' not in info or not isinstance(info['files'], list):
-        raise BadCompileRequest
-    files = {}
-    for filename in info['files']:
-        if not isinstance(filename, str) or not filename.endswith('.asy'):
-            raise BadCompileRequest
-        if not filename in request.form:
-            raise BadCompileRequest
-        files[filename] = request.form[filename]
-    if 'main' not in info or not isinstance(info['main'], str):
-        raise BadCompileRequest
-    if info['main'] not in files:
-        raise BadCompileRequest
-    result = asy.compile(info['main'], files, outformat=info['outformat'])
+@app.route('/compile/svg', methods=['POST'])
+def compile_svg():
+    info, files = get_compile_data(request.form)
+    result = asy.compile(info['main'], files, outformat='svg')
     if not result['output']:
         result['output'] = None
     if result['svg'] is not None:
         result['svg'] = result['svg'].decode('utf-8')
     assert result['svg'] is not None or result['error'] is not None
     return Response(json.dumps(result), mimetype='application/json')
+
+@app.route('/compile/pdf', methods=['POST'])
+def compile_pdf():
+    info, files = get_compile_data(request.form)
+    result = asy.compile(info['main'], files, outformat='pdf')
+    if not result['pdf']:
+        return "No image output", 400
+    return Response(result['pdf'], mimetype='application/pdf')
+
+def get_compile_data(request_form):
+    info = None
+    files = {}
+    for name, value in request_form.items():
+        if name == 'info':
+            info = json.loads(request_form['info'])
+        else:
+            if not name.endswith('.asy') or '/' in name:
+                raise BadCompileRequest
+            files[name] = value
+    if info is None:
+        raise BadCompileRequest
+    if 'main' not in info or not isinstance(info['main'], str):
+        raise BadCompileRequest
+    if info['main'] not in files:
+        raise BadCompileRequest
+    return info, files
 
 @app.route('/status', methods=['GET'])
 def status():

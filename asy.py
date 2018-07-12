@@ -19,7 +19,7 @@ ERROR_TIME_LIMIT = "Process exceeded time limit ({}s). Aborted." \
 ERROR_OUTPUT_LIMIT = "Process exceeded output limit ({}KB). Aborted." \
     .format(int(ASY_OUTPUT_LIMIT/2**10))
 ERROR_FAILURE = "Compilation failed."
-ERROR_NOIMAGE = "No image output (empty image?)."
+ERROR_NOIMAGE = "No image output."
 
 ASY_ENVIRON = dict(os.environ)
 def fix_path():
