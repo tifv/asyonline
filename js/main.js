@@ -676,13 +676,13 @@ const output = function() { /* namespace {{{ */
     var svg_size = {height: null, width: null};
 
     function empty() {
-      let $text = $output.children('.output__part--text');
-      let $svg = $output.children('.output__part--svg');
-      if ($text.length == 1 && $svg.length == 1) {
-        flex_grow.text = $text.css('flex-grow');
-        flex_grow.svg = $svg.css('flex-grow');
-      }
-      $output.empty();
+        let $text = $output.children('.output__part--text');
+        let $svg = $output.children('.output__part--svg');
+        if ($text.length == 1 && $svg.length == 1) {
+            flex_grow.text = $text.css('flex-grow');
+            flex_grow.svg = $svg.css('flex-grow');
+        }
+        $output.empty();
     }
 
     function append_error(text) {
@@ -724,51 +724,52 @@ const output = function() { /* namespace {{{ */
     }
 
     function compile_finish() {
-      if (this !== current_request) {
-        return;
-      }
-      current_request = null;
-      empty();
-      file_urls.revoke('svg');
-      let response_type = this.getResponseHeader("Content-Type");
-      if (!response_type.startsWith("application/json")) {
-        $output.html(this.responseText);
-        return;
-      }
-      let response = JSON.parse(this.responseText);
-      if (response.error) {
-        append_error(response.error);
-      }
-      if (response.output) {
-        let $text_data = $('<code/>')
-          .addClass('output__data output__data--text')
-          .text(response.output);
-        let $text_part = $('<div/>')
-          .addClass('output__part output__part--text splitter__part')
-          .css('flex-grow', flex_grow.text)
-          .append($text_data);
-        $output.append($text_part);
-      }
-      if (response.output && response.svg) {
-        let $separator = $('<div/>').addClass('splitter__separator');
-        $output.append($separator);
-        separators.enable($separator);
-      }
-      if (response.svg) {
-        let $svg_data = $(response.svg);
-        let $svg = $svg_data.filter('svg');
-        svg_size.width = parseFloat($svg.attr('width'));
-        svg_size.height = parseFloat($svg.attr('height'));
-        $svg.removeAttr('width');
-        $svg.removeAttr('height');
-        $svg.css({width: "100%", height: "100%"});
-        let $svg_part = $('<div>')
-          .addClass('output__part output__part--svg splitter__part')
-          .css('flex-grow', flex_grow.svg)
-          .append($svg);
-        $output.append($svg_part);
-        $output.append(get_save_part(response.svg));
-      }
+        if (this !== current_request) {
+            return;
+        }
+        current_request = null;
+        empty();
+        file_urls.revoke('svg');
+        let response_type = this.getResponseHeader("Content-Type");
+        if (!response_type.startsWith("application/json")) {
+            $output.html(this.responseText);
+            return;
+        }
+        let response = JSON.parse(this.responseText);
+        if (response.error) {
+            append_error(response.error);
+        }
+        if (response.output) {
+            let $text_data = $('<code/>')
+              .addClass('output__data output__data--text')
+              .text(response.output);
+            let $text_part = $('<div/>')
+              .addClass('output__part output__part--text splitter__part')
+              .css('flex-grow', flex_grow.text)
+              .append($text_data);
+            $output.append($text_part);
+        }
+        if (response.output && response.svg) {
+            let $separator = $('<div/>').addClass('splitter__separator');
+            $output.append($separator);
+            separators.enable($separator);
+        }
+        if (response.svg) {
+            let $svg_data = $(response.svg);
+            let $svg = $svg_data.filter('svg');
+            svg_size.width = parseFloat($svg.attr('width'));
+            svg_size.height = parseFloat($svg.attr('height'));
+            $svg.removeAttr('width');
+            $svg.removeAttr('height');
+            $svg.css({width: "100%", height: "100%"});
+            let $svg_part = $('<div>')
+              .addClass('output__part output__part--svg splitter__part')
+              .css('flex-grow', flex_grow.svg)
+              .append($svg);
+            $output.append($svg_part);
+            $output.append(get_save_part(response.svg));
+        }
+        separators.resize($output);
     }
 
     function get_save_part(svg_data) {
