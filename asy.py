@@ -57,7 +57,7 @@ def compile(mainname, files, outformat='svg'):
             with Path(inputdir, filename).open('w') as fileobj:
                 fileobj.write(files[filename])
         outpath = Path(outputdir, 'main.{}'.format(outformat))
-        asyprocess = subprocess.Popen( [ 'asy',
+        asyprocess = subprocess.Popen( [ 'asy', '-offscreen',
                 '-libgs={}'.format(LIBGS),
                 '-outformat', outformat,
                 mainname,
