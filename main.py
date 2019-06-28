@@ -1,6 +1,7 @@
 import json
 
-from flask import Flask, request, render_template, Response
+from flask import ( Flask, request, render_template, Response,
+    send_from_directory )
 from jinja2 import Markup
 
 import asy
@@ -20,6 +21,7 @@ app.jinja_env.globals['include_raw'] = (
 def default():
     return render_template( 'default.html',
         use_cdn=(not DEVELOPER_MODE),
+        use_static_js=(not DEVELOPER_MODE),
     )
 
 @app.route('/compile/svg', methods=['POST'])
@@ -77,6 +79,11 @@ def not_found(exception):
 @app.errorhandler(BadCompileRequest)
 def bad_compile_request(exception):
     return 'Bad compile request', 400
+
+@app.route('/js/<path:path>')
+def send_js(path):
+    return send_from_directory('js', path)
+
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=9396, debug=False)

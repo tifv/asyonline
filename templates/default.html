@@ -271,9 +271,13 @@
   {%- endif -%}
 ></script>
 
+{% if use_static_js -%}
+<script src="/js/main.js"></script>
+{%- else -%}
 <script>
 {{ include_raw("js-include/main.js") }}
 </script>
+{%- endif %}
 
 </body>
 </html>
