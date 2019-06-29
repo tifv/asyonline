@@ -4,7 +4,7 @@ from flask import ( Flask, request, render_template, Response,
     send_from_directory )
 from jinja2 import Markup
 
-import asy
+from asyonline import asy
 
 
 app = Flask(__name__)

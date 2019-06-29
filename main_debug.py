@@ -1,5 +1,5 @@
-import main
-from main import app
+from asyonline import main
+from asyonline.main import app
 
 main.DEVELOPER_MODE = True
 
