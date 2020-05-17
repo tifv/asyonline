@@ -1,6 +1,7 @@
 import time
 import io
 import os
+import stat
 import fcntl
 import selectors
 import subprocess
@@ -9,10 +10,6 @@ from pathlib import Path
 
 ASY_TIME_LIMIT = 3.0
 ASY_OUTPUT_LIMIT = 2**15 # bytes
-
-OUTFORMAT_FILENAMES = {
-    'svg' : 'main.svg',
-}
 
 ERROR_TIME_LIMIT = "Process exceeded time limit ({}s). Aborted." \
     .format(ASY_TIME_LIMIT)
@@ -37,6 +34,14 @@ def fix_path():
 ASY_ENVIRON['PATH'] = fix_path()
 if 'ASYONLINE_ASYMPTOTE_DIR' in os.environ:
     ASY_ENVIRON['ASYMPTOTE_DIR'] = os.environ['ASYONLINE_ASYMPTOTE_DIR']
+if 'ASYONLINE_ASYMPTOTE_HOME' in os.environ:
+    ASY_ENVIRON['ASYMPTOTE_HOME'] = os.environ['ASYONLINE_ASYMPTOTE_HOME']
+
+if 'ASYONLINE_ASY' in os.environ:
+    ASY = os.environ['ASYONLINE_ASY']
+else:
+    ASY = 'asy'
+
 if 'ASYONLINE_LIBGS' in os.environ:
     LIBGS = os.environ['ASYONLINE_LIBGS']
 else:
@@ -53,11 +58,17 @@ def compile(mainname, files, outformat='svg'):
         raise ValueError("Outformat not supported: {}".format(outformat))
     error = output = result = None
     with TemporaryDirectory() as inputdir, TemporaryDirectory() as outputdir:
+        os.chmod( inputdir,
+            stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR |
+            stat.S_IXGRP | stat.S_IRGRP )
+        os.chmod( outputdir,
+            stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR |
+            stat.S_IXGRP | stat.S_IRGRP | stat.S_IWGRP )
         for filename in files:
             with Path(inputdir, filename).open('w') as fileobj:
                 fileobj.write(files[filename])
         outpath = Path(outputdir, 'main.{}'.format(outformat))
-        asyprocess = subprocess.Popen( [ 'asy', '-offscreen',
+        asyprocess = subprocess.Popen( [ ASY, '-offscreen',
                 '-libgs={}'.format(LIBGS),
                 '-outformat', outformat,
                 mainname,
@@ -95,7 +106,7 @@ def compile(mainname, files, outformat='svg'):
         return {'error' : error, 'output' : output, outformat : result}
 
 def _read_until(stream, time_finish, byte_limit):
-    # time_limit is as from time.perf_counter()
+    # time_finish is as from time.perf_counter()
 
     fd = stream.fileno()
     fl = fcntl.fcntl(fd, fcntl.F_GETFL)
