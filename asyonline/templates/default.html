@@ -259,17 +259,25 @@
   {%- endif -%}
 ></script>
 <script {% if use_cdn -%}
-  src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.7/ace.js"
+  src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/ace.js"
   {%- else -%}
-  src="/static/libs/ace/1.2.7/ace.js"
+  src="/static/libs/ace/1.4.5/ace.js"
   {%- endif -%}
 ></script>
 <script {% if use_cdn -%}
-  src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.7/theme-vibrant_ink.js"
+  src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/theme-terminal.js"
   {%- else -%}
-  src="/static/libs/ace/1.2.7/theme-vibrant_ink.js"
+  src="/static/libs/ace/1.4.5/theme-terminal.js"
   {%- endif -%}
 ></script>
+
+{% if use_static_js -%}
+<script src="/js/ace-mode-asymptote.js"></script>
+{%- else -%}
+<script>
+{{ include_raw("js-include/ace-mode-asymptote.js") }}
+</script>
+{%- endif %}
 
 {% if use_static_js -%}
 <script src="/js/main.js"></script>

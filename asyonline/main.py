@@ -80,6 +80,7 @@ def not_found(exception):
 def bad_compile_request(exception):
     return 'Bad compile request', 400
 
+# This should be handled by web server instead
 @app.route('/js/<path:path>')
 def send_js(path):
     return send_from_directory('js', path)

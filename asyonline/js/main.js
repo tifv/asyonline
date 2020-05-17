@@ -377,7 +377,8 @@ const sources = function() { /* namespace {{{ */
           .appendTo($file_pane);
         separators.enable($separator);
         let editor = ace.edit(editor_id);
-        editor.setTheme("ace/theme/vibrant_ink");
+        editor.setTheme("ace/theme/terminal");
+        editor.session.setMode("ace/mode/asymptote");
         editor.commands.addCommand({
           name: 'asycompile',
           bindKey: {win: 'Ctrl-Enter', mac: 'Command-Enter'},
