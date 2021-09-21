@@ -13,9 +13,8 @@ main (int argc, char **argv)
         return 1;
     }
 
-    argv[0] = "/usr/bin/asy";
     // Execute the target process
-    execvp("/usr/bin/asy", argv);
+    execvp(argv[1], argv+1);
     perror("Failed to execute the target process");
     return 1;
 }

@@ -1,24 +1,36 @@
 FROM asyonline/base-monolith
 
 COPY ["asyonline", "/asyonline"]
-COPY ["runasy/runasy", "/home/asyonline/runasy"]
+COPY ["runasy/exec", "/runasy/exec"]
 
 RUN \
     set -o xtrace ; \
-    echo asyonline:x:1000:1000:asyonline:/home/asyonline:/sbin/nologin > /etc/passwd ; \
-    echo asyonline:x:1000:asyonline > /etc/group ; \
-    mkdir -p /home/asyonline ; \
-    chown -R asyonline:asyonline /home/asyonline ; \
+:; \
+    echo asyonline:x:1000:1000:asyonline:/home/asyonline:/sbin/nologin >> /etc/passwd ; \
     echo asymptote:x:1001:1000:asyonline:/home/asymptote:/sbin/nologin >> /etc/passwd ; \
-    mkdir -p /home/asymptote ; \
-    chown -R asymptote:asyonline /home/asymptote ; \
-    chown asymptote:asyonline /home/asyonline/runasy ; \
-    chmod a-w,a+x,u+s /home/asyonline/runasy ;
+    echo asyonline:x:1000:asyonline > /etc/group ; \
+:; \
+    mkdir --parents /home/asyonline ; \
+        chown -R asyonline:asyonline /home/asyonline ; chmod 700 /home/asyonline ; \
+:; \
+    echo '#!/bin/bash'                           >> /runasy/asy ; \
+    echo 'exec /runasy/exec /usr/bin/asy "${@}"' >> /runasy/asy ; \
+    echo '#!/bin/bash'                        >> /runasy/kill ; \
+    echo 'exec /runasy/exec /bin/kill "${@}"' >> /runasy/kill ; \
+        chown -R asyonline:asyonline /runasy ; chmod 700 /runasy ; \
+        chown asymptote:asyonline /runasy/exec ; \
+        chmod a-w,a+x,u+s /runasy/exec ; \
+        chmod a+x /runasy/asy /runasy/kill ; \
+:; \
+    mkdir --mode=700 --parents /home/asymptote ; \
+        chown -R asymptote:asyonline /home/asymptote ; chmod 700 /home/asymptote ; \
+:;
 
 USER asyonline:asyonline
 
 ENV \
-    ASYONLINE_ASY="/home/asyonline/runasy" \
+    ASYONLINE_ASY="/runasy/asy" \
+    ASYONLINE_KILL="/runasy/kill" \
     ASYONLINE_ASYMPTOTE_HOME="/home/asymptote/.asy/"
 
 EXPOSE 8000

@@ -42,6 +42,14 @@ if 'ASYONLINE_ASY' in os.environ:
 else:
     ASY = 'asy'
 
+if 'ASYONLINE_KILL' in os.environ:
+    KILL = os.environ['ASYONLINE_KILL']
+    def killasy(process):
+        subprocess.run([KILL, str(process.pid)])
+else:
+    def killasy(process):
+        process.kill()
+
 if 'ASYONLINE_LIBGS' in os.environ:
     LIBGS = os.environ['ASYONLINE_LIBGS']
 else:
@@ -81,18 +89,18 @@ def compile(mainname, files, outformat='svg'):
             output = _read_until( asyprocess.stdout,
                 time_finish, ASY_OUTPUT_LIMIT )
         except _ReadTimeLimit as read_error:
-            asyprocess.kill()
+            killasy(asyprocess)
             error = ERROR_TIME_LIMIT
             output = read_error.output
         except _ReadByteLimit as read_error:
-            asyprocess.kill()
+            killasy(asyprocess)
             error = ERROR_OUTPUT_LIMIT
             output = read_error.output
         else:
             try:
                 asyprocess.wait(time_finish - time.perf_counter())
             except subprocess.TimeoutExpired:
-                asyprocess.kill()
+                killasy(asyprocess)
                 error = ERROR_TIME_LIMIT
         output = output.decode('utf-8', errors='replace')
         if error is None and asyprocess.returncode > 0:
