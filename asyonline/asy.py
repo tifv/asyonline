@@ -8,7 +8,7 @@ import subprocess
 from tempfile import TemporaryDirectory
 from pathlib import Path
 
-ASY_TIME_LIMIT = 3.0
+ASY_TIME_LIMIT = 9.0
 ASY_OUTPUT_LIMIT = 2**15 # bytes
 
 ERROR_TIME_LIMIT = "Process exceeded time limit ({}s). Aborted." \
