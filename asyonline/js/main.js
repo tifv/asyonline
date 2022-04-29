@@ -486,6 +486,7 @@ const sources = function() { /* namespace {{{ */
           .next(".splitter__separator").addBack()
             .remove();
         $('.file_header[data-filename="' + file.info.name + '"').remove();
+        separators.resize($file_pane);
     } /* }}} */
 
     function request_compile(main_filename) { /* {{{ */
