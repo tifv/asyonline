@@ -2,7 +2,7 @@ import json
 
 from flask import ( Flask, request, render_template, Response,
     send_from_directory )
-from jinja2 import Markup
+from markupsafe import Markup
 
 from asyonline import asy
 
