@@ -7,6 +7,7 @@
 //          (or do it consistently)
 // TODO highlight LaTeX strings (at least show errors when math is not
 //      complete, and maybe track groups)
+// XXX  fix "-" in "x-0.5"
 
 
 define("ace/mode/asymptote_highlight_rules", [], function(require, exports, module) {
@@ -325,7 +326,7 @@ var asymptoteHighlightRules = function() {
                 ]
             }, {
                 token : "constant.numeric", // int / float
-                regex : "[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:e[+-]?\\d+)?"
+                regex : "(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:e[+-]?\\d+)?"
             }, {
                 token : keywordMapper,
                 regex : "[a-zA-Z_][a-zA-Z0-9_]*"
