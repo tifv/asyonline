@@ -214,6 +214,7 @@ const sources = function() { /* namespace {{{ */
     var current_project = null;
     var projects_db = null;
     open_projects_db();
+    var last_focused_file = null;
 
     $("#pane_separator")
       .on("separator:deactivate", resize_editors);
@@ -389,6 +390,9 @@ const sources = function() { /* namespace {{{ */
                   request_compile();
           },
         });
+        editor.on("focus", function() {
+            last_focused_file = file.info.name;
+        });
         if (file.content) {
             editor.setValue(file.content);
             editor.selection.clearSelection();
@@ -490,13 +494,15 @@ const sources = function() { /* namespace {{{ */
     } /* }}} */
 
     function request_compile(main_filename) { /* {{{ */
-        if (main_filename != null) {
-            current_project.info.compiler.last_run = main_filename;
-        } else if (current_project.info.compiler.last_run == null) {
-            return window.alert("Select a main file to compile.")
-        } else {
-            main_filename = current_project.info.compiler.last_run;
+        if (main_filename == null) {
+            if (last_focused_file != null)
+                main_filename = last_focused_file;
+            else if (current_project.info.compiler.last_run != null)
+                main_filename = current_project.info.compiler.last_run;
+            if (main_filename == null)
+                return window.alert("Select a main file to compile.")
         }
+        current_project.info.compiler.last_run = main_filename;
         autosave();
         let compile_data = {
             info: { main: main_filename },
@@ -664,7 +670,10 @@ const sources = function() { /* namespace {{{ */
         resize_editors();
     } /* }}} */
 
-    return { toggle_file_menu: toggle_file_menu };
+    return {
+        toggle_file_menu: toggle_file_menu,
+        request_compile: request_compile,
+    };
 }(); /* }}} */
 
 /*
