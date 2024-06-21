@@ -80,7 +80,7 @@ def compile(mainname, files, outformat='svg'):
                 '-libgs={}'.format(LIBGS),
                 '-outformat', outformat,
                 mainname,
-                '-outname', str(outpath) ],
+                '-outname', str(outpath.with_suffix('')) ],
             cwd=inputdir, env=ASY_ENVIRON,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             universal_newlines=False )
