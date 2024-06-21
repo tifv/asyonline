@@ -24,6 +24,8 @@ RUN \
 :; \
     mkdir --mode=700 --parents /home/asymptote ; \
         chown -R asymptote:asyonline /home/asymptote ; chmod 700 /home/asymptote ; \
+:; \
+    mkdir /var/cache/fonts --mode 1777 ; \
 :;
 
 USER asyonline:asyonline
