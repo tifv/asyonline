@@ -361,11 +361,13 @@ ace.define("ace/mode/asymptote", [], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
+var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 var TextMode = require("./text").Mode;
 var asymptoteHighlightRules = require("./asymptote_highlight_rules").asymptoteHighlightRules;
 
 var Mode = function() {
     this.HighlightRules = asymptoteHighlightRules;
+    this.$behaviour = new CstyleBehaviour({ braces: true });
 };
 oop.inherits(Mode, TextMode);
 
